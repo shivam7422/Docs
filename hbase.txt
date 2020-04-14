@@ -1,0 +1,134 @@
+>> hbase- it is a open source distributed, scalable and a no sql databases written in java. it runs on top of hdfs and provides
+big table like capabilities to hadoop.	it is designed to provide the fault taulrent way of storing large collection of sparse data sets.
+
+>> Difference between hive and hbase--
+
+> hive-
+		. It is a query engine.
+		. It is mainly for batch processing.
+		. used for OLAP.
+		. It is not a database.
+
+> hbase-
+
+		. It is used to store particularly for unstructured data.
+		. it is mainly for transactional processing.
+		. used to OLTP.
+		. It supports no sql database.
+
+In hbase the data will be stored in column oriented database and the data is stored in tables. And these table are sorted by rowid.
+ROWID is the collection of column family.
+
+> Table: collection of rows present.
+> Row: Collection of column families.
+> Column family: Collection of columns.
+> Column: Collection of key value pairs.
+> Namespace: logical grouping of tables.
+> Cell: A tuple which exactly specifies a cell definition in hbase.
+
+>> Difference between row oriented and column oriented database (https://www.netwoven.com/2013/10/10/hbase-overview-of-architecture-and-data-model/) -
+	>> row oriented- data is stored and retrived one row at a time and hence it has to read unncessary data if less data is required.
+	> Easy to read and write records and good to OLTP systems.
+	>>> It will store only structured data.
+	>> column oriented- data is stored and retrived in columns and hence can read only relevant data if only some data is required.
+	> Read and write are typically slower operations and well suited for OLAP systems.
+	>>> It will store structured & semi structured data.
+
+>> Benifits- > it is completly distributed architecture.
+	     > It can easily work on large data sets.>> It is for both structured and semi structured data types.>> 
+
+>> HBase architecture- Mainly having 5 components. HMASTER, HREGIONSERVER, HREGIONS, ZOOKEEPER, HDFS.
+
+>> HREGION-	> Tables which are divided horizontally by its row key range called regions.
+		> A regions contains all rows in the table based on the regions start key and end key.
+		> All the regions are assigned to the nodes called REGIONSERVERS and these serves data for read and write operations.
+		> A region server can serve upto 1000 region. The maximum size will be 10GB and the minimum will be 64 MB which can be changed. By default it will be 4 GB.
+
+>> HMASTER- 	> It is mainly handled for region assignment, DDL operations (insert, update, delete)
+		> Assigning regions on start up, reassigning regions for recovery and load balancing.
+		> Monitoring all regionserver instances in the cluster.
+	>> whenever any region is down Zookeeper will get the signal that the particular region server is not working. So the region which is assigned to that server will 
+become invalid. Hence ZK will again that region to another server.
+	>> When our regions are getting filled, so the data has to move to different regions to balance the load.
+
+>> ZOOKEEPER-	> Hbase uses ZK as a distributed coordinator service to maintain the server state in the cluster.
+		> It checks whether which server are alive, in case of failure it provides server failure notification.
+		> RS and Active master are connected with a session to ZK through heartbeat signals.
+
+>> Meta Table 	> It is a table which hold the list of the regions in a cluster in a key and value pair. Key will be region start key, region id and end key will be
+Region server and ZK will hold the location of the meta table.
+
+>> HBase Read and Write-	> client will send a request to ZK for meta table location.
+				> ZK will send the location to the client which will be having .META.server.
+				> The client will query .META. server to get the region server corresponding to the row key it wants to access.
+
+>> Region Server components > There are 3 main components
+
+> WAL- It is a distributed file system which is used to store new data that has not been saved permanently, also it used for recovery in case of failure.
+> BlockCache- It is used for read cache. It stores frequently read data in memory. when the block storage become full it will evict the recently used data.
+> Memstore- It is used to write cache. It stores the data which has not been written into disk. It is sorted before writting into disk and ther will be one memstore per
+family column per region.
+> Hfile- It is a physical storage which is used to store the rows as a sorted keyvalues on disk.
+
+>> HBASE write operations- When ever clients sends a write commands below process will execute.
+
+	>> instructions will direct send to WAL first and writes important logs into it. It is done for fault tolerence, so that if any error comes we can take actions with WAL.
+	>> Once the log entry is done, the data to be written will be forwaded to MEMSTORE which is actually the RAM of the datanode.
+	>> Later the data is dumped in HFILE, where the actual data is stored in HDFS. If the MemCache is full, the data will be directly store in HFILE directly.
+	>> Once the data is written successfully, an acknowledgement will be sent to client for the confirmation for the task completed.
+
+>> HBASE Read operations- Whenever clients sends Read commands below process will execute.
+
+	>> ZK will be having the location of META table which is present in HREGION server. When a client request, ZK will provide the address of that file.
+	>> The client will read the META table from here it will get the region address of the table where the data is present to be read.
+	>> when we reach to a particular Hregion, the process will enter to blockcache, where the data is present from the last read. If a user queries the same data, the
+client will get the data on the same time. If the table found, the process will return to the client with the data as a result.
+	>> If the table is not found, the process will start search in memstore since the data would have written in HFile longback. If it is found it will return to client
+with the data as a result.
+	>> If the table is not found, it will search in HFile. The data will be present here and once the search completed the process will return to client with the data as a result.
+	>> The data which we have got from HFILE is the latest data, and can be read by user again. Hence the data will be written to blockcache, so whenever user wants to 
+read the same data again, it can be instantly accessed by the client.
+	>> Once the data is written in blockcache, and all the search is completed an acknowledgement will be sent to client for the confirmation for the task completed.
+
+>> Compaction- It is a process in which HBASE will clean itself. Hbase is a optimized distributed data store, but this read needs one file per column family, but for heavy 
+	writes it is not possible to have one file per column family. Hence to reduce the maximum number of disks which are needed to read, hbase tries to combine all the HFiles
+	into large single HFile. It is of 2 types.
+	
+	>> Minor compaction-- hbase will automatically pick the small files and rewrites them into bigger files in a complete region server or a different
+region servers. In this process merge sort will be used and through this it increases memory which can be used to store more data.
+	
+	>> Major compaction   -- Hbase will merges and rewrites the data into one bigger file based on data present per column family.
+			      -- During this process all the deleted files or expired process will be deleted permanently.
+			      -- increase read performance for the newly read file.
+			      -- Posibilities of traffic congestion.
+									
+										QUERIES
+> to get the list of table- list TN
+> create table- create 'table_name' ,'CF1','CF2'
+> to see the data- scan 'table_name'
+> to get the table information- describe 'table_name'
+> to insert the data- put 'table_name','rowno','CF1:CN',VALUE'	
+> to update the data- put 'table_name','rowno','CF1:CN','new value'
+> to drop the table- we have to disable the table- >>> disable 'table_name' and then drop 'table_name'
+> to check the existing of table- exists 'table_name'
+> to check the count of the table- count'table_name'
+> to delete the one column from one column family- delete 't1','rowno','CF:CL1'
+> to delete one record- delete 'table_name', 'rowno','CF1:CN'
+> to delete the data based on CF- alter 'TBL','delete'=>'CF'
+> to delete all the records for the same rowno- deleteall 'table_name','rowno'
+> to add a CF in an existing hbase table-- alter 'TN',NAME=>'CF'
+> to truncate table- truncate 'table_name' (while truncating the table, it will disable, drop the table and create the empty table)
+> versioning- It is to check the how many updates has performed on the column. By default the value will be 3 in centos and 1 will be in cloudera.
+	>> to change the versioning, we have to disable the table first.
+	>> we have to alter the table- alter 'table_name' ,NAME=>'CF',VERSIONS=>value
+	>> then we have to update the value.
+	>> then we have to see the value based on the column - scan 'TN',{COLUMN=>'CF1:CN',VERSIONS=>value}
+
+										HBASE-HIVE Integration
+
+>> we can use hive to do the ETL process and to save the data we can use hbase.
+
+>> in hive if we have to see the same data which is present the same in hbase.
+	>> create external table hive_hbase (key string, house string, dump string) stored by 'org.apache.hadoop.hive.hbase.HBaseStorageHandler' 
+with Serdeproperties ("hbase.columns.mapping"=":key,CF:house,CF:dump") tblproperties ("hbase.table.name"="hivebase");
+>> if we are adding columns in the hbase, it will not reflect in hive. We have to delete the table which we have created in hive and again we have to sync with HBase.
