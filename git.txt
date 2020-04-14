@@ -1,3 +1,12 @@
-Git- git is a distributed version control system which we can access anywhere and anytime.for tracking changes in source code during software development. 
-It is designed for coordinating work among programmers, but it can be used to track changes in any set of files
+Git- git is a distributed version control system which we can access anywhere and anytime.for tracking changes in source code during software development. It is designed for coordinating work among programmers, but it can be used to track changes in any set of files.
+
 GitHub- Where we have to implement the functionalities of Git.
+
+Pull Request- Pull requests let you tell others about changes you've pushed to a GitHub repository. Once a pull request is sent, interested parties can review the set of changes, discuss potential modifications, and even push follow-up commits if necessary.
+
+Fork- A fork is a copy of a repository. Forking a repository allows you to freely experiment with changes without affecting the original project.Propose changes to someone else's project
+A great example of using forks to propose changes is for bug fixes. Rather than logging an issue for a bug you've found, you can:
+. Fork the repository.
+.  Make the fix.
+. Submit a pull request to the project owner.
+If the project owner likes your work, they might pull your fix into the original repository!
