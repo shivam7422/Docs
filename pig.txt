@@ -1,0 +1,148 @@
+>> It is a tool/platform which is used to analyze larger data sets representating as data flows.
+>> It is a high level languge which is called Pig latin.
+>> Pig is an abstraction of MR. 
+>> It is generally used with hadoop where we can perform all kind of manipulation operations using PIG.
+>> pig latin is a high level language which analyze the data in hadoop using apache pig. It is an interpreter layer which is used to convert pig latin statements into
+map reduce jobs.
+> maximum partition that can be created by a mapper or reducer is set to 100. 
+> One can change it by issuing the following command: SET hive.exec.max.dynamic.partitions.pernode = <value> 
+>> PIG latin is a scripting language for the data flows that defines large data sets.
+>> Pig engine is a platform when the pig latin scripts executes.
+
+>> Difference b/w PIG & MR
+
+PIG-
+>> It is a data manipulation language.
+>> It is high level language.
+>> performing of join operation is very easy.
+>> We can reduce the length of the code to a great extend.
+
+MR-
+>> It is a data processing language.
+>> It is low level language.
+>> performing of join operation is very difficult.
+>> It requires more than 20 times of lines of code to perform the  task.
+
+>> Difference b/w Hive & PIG
+
+HIVE-
+>> It is HQL( high query language)
+>> It allows structure data.
+>> It supports partitions.
+>> It supports bucketing.
+>> It operates on server side.
+>> Developed by FB.
+>> Hive executes quickly but can't load the data immediately.
+
+PIG-
+>> It ueses PIG latin language which is a procedural language.
+>> It allows structured and semi structured data.
+>> It does not support partitions.
+>> It doesnot supports bucketing.
+>> It operates on server and client side.
+>> Developed by Yahoo.
+>> It loads the data quickly.
+
+>> Difference b/w PIG & SQL
+
+PIG-
+>> It uses pig latin language.
+>> It process structured & semi strcutred data.
+>> Suitable for complex data structure.
+>> developed by yahoo.
+
+SQL-
+>> It itself a decelerative language.
+>> It process only structured data.
+>> Suitable for business demand for fast data analysis.
+>> developed by oracle.
+
+Architecture-
+
+>> parser- It will do the semantic check of the script. If everything is correct the output will be a DAG( direct acyclic graph) which represents the logical 
+operations. In DAG, the logical script are represented as the nodes and the data flows are represented as edges.
+
+>> Optimizer- The DAG will pass the logical script to the optimizer which carries out the logical optimizer.
+
+>> Complier- Compiler will sends the optimized logical plan into a series of MR jobs.
+
+>> Execution Engine- The MR are submitted in the sorted order. Here the MR jobs are executed on Hadoop to get the desired o/p.
+
+PIG- Execution modes-
+
+> local mode- you need to access the single machine where all the files are installed and run using localhost and file system. pig -x local
+> tez local mode- same like local mode except pig will internally invoke tez runtime engine. pig -x tez_local
+> spark_local mode- same like local mode except pig will internally invoke spark runtime engine. pig -x spark_local
+> mapreduce mode- you need to have access for hadoop cluster and HDFS installation. to run use- pig or pig -x mapreduce
+> tez mode- you need to have access for hadoop cluster and HDFS installation. to run use- pig -x
+> spark mode- pig -x spark
+
+to run any script - pig -x execution mode fle_name
+
+Pig data model-
+
+> field- a piece of data in a column is called field.
+> tuple- collection of field is called tuple.
+> Bag- collection of tuple is called bag which contains duplicate data.
+
+Pig Execution Mechanisms- there are 3 types of mechanisms-
+
+> interactive mode (GRUNT)- there we can run the pig commands using grunt shell.
+> batch mode (SCRIPT) - here we can keep all the commands in a single file and that one file.
+> embedded mode (UDF)- pig provides UDF which we can use in our script.
+
+pig data types- 
+
+> simple- int , long , float, double, chararray, bytearray, boolean datetime
+> complex- tuple, bag, map
+
+>> Map- The combination which is expressed in the key and value pairs.
+
+Relational operations- 
+>> loading and storing -- load, store
+>> filtering- filter, distinct, foreach generate
+>> grouping and joining-- join,group and cogroup
+>> sorting--  order, limit
+>> combining and split-- union, split, 
+>> Diagnostic -- dump, describe, explain, illustrate;
+
+>> To load data- A=LOAD 'path of the file' using PigStorage(',') as (CL1:DN1,cl2:dn2,cn3:cn3);
+>> to filter data B- FILTER A by condition;
+>> The illustrate operator gives you the step-by-step execution of a sequence of statements. -- illustrate A;
+>> The explain operator is used to display the logical, physical, and MapReduce execution plans of a relation. -- explain relation_name;
+>> Order- to arrange the order in a sequential way. >> C= order B by column name;
+>> Group- combining the data in one relations. B= group A by cl; If multiple then B= group A by (A,c);
+>> COGROUP- combining the data more than one relations. If there are 2 tables which needs to be grouped then-- C= COGROUP B by cn1, A by cn1;
+>> limit- to get the data in limit. >> D= limit C 2;
+>> to genearte the data based on the columns. >> E= foreach D generate cl1,cl2, cl3;
+>> to store data- store F into 'path'
+
+CASE sensitive - SUM,MIN,MAX, AVG, COUNT, SUMSTRING, LENGTH, TOKENIZE, FLATTEN
+
+TOKENSIZE- is used to split the string in a single tuple and returns a bag which contains the output of split of the operation.
+	>> foreach A generate TOKENIZE(columnname which we want to split);
+FLATTEN- It is used to convert rows into columns. Sometimes the data will be stored in the form of bags or tuples. To remove the 
+data from the tuple & bag we use flatten keyword.- >> foreach A genrate FLATTEN(TOBAG(*));
+SPLIT-  split A into file1 if (condtion), file2 if (condition2);
+Store- to store the data in local path- STORE file_name into 'path' using PigStorage('|');-- can be any delimiter.
+
+JSON-   >> to load the JSON file data >> A= LOAD 'path' using JsonLoader ('cl1:dt1,cl2:dt2');
+	>> to store the json file data>> Store A into 'path' using  JsonStorage;
+
+>> Logical & physical Plan- 
+
+Both are created while executing the pig script. L.P. are produced after semantic checking and basic parsing, and no data processing takes place during the creation
+of logical plan. For each line in pig script, syntax check will performed for each operators and a logical plan is created. If any error is occured, exception will
+thrown and the program ends.
+-- After the execution of logical plan, the script will move to the physical plan. This is nothing but a series of mapreduce jobs while creating the physical plan. It
+is divided into 3 physical operators such as local rearrange, global rearrange and package;
+
+>> PIGSTORAGE-- That is bydefault load function, whenever we want to load the data the file system to pig we will pigstorage. 
+>> Bloommapfile-- It is a class which is used to extend the MAPFILE.
+>> Illustrate-- This is used to get the sample data from the table. illustrate A;
+
+>> uses of pig-- mostly the pig is used in ETL and data warehouse or researh on raw data. this is used by developers who want to use the data beofre being loaded into
+data warehouse.
+
+>> COUNT_STAR & COUNT-- count function doesn't include the NULL values while counting the number of bags in the tuple where as COUNT_STAR will count the NULL values;
+>> FOREACH-- to apply the transformations to the data and to generate new data items we use foreach. 

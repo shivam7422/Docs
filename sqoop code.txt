@@ -1,0 +1,52 @@
+*********************************************To import the data from RDBMS to HDFS**********************************************************
+To see the data in RDBMS-
+mysql -u root -p
+provide password and hit enter.
+
+To see the database- show databases;
+use databases which is required- use database_name;
+ to see the table- show tables;
+******************************************using SQOOP commands*************************************
+username - root password cloudera
+
+to go to root--- sudo su - hit enter and enter password (if required)
+
+to check all the databases---
+sqoop-list-databases --connect jdbc:mysql://localhost --username root --password cloudera
+
+to check for all the table name---
+sqoop-list-tables --connect jdbc:mysql://localhost/DB_NAME --username root --password cloudera
+
+to import the data from RDBMS to SCOOP for one table---
+sqoop import --connect jdbc:mysql://localhost/DB_NAME --username root --password cloudera --table TABLE_NAME 
+
+if we have to use a fixed amount of mappers then
+sqoop import --connect jdbc:mysql://localhost/DB_NAME --username root --password cloudera --table TABLE_NAME -m1 (the value of m can be changed)
+
+to import the data from RDBMS to SCOOP for all tables---
+sqoop-import-all-tables --connect jdbc:mysql://localhost/DB_NAME --username root --password cloudera
+
+to import the data based on query-
+sqoop import --connect:jdbc:mysql://localhost/DB_NAME --username root --password cloudea --query'select * from table_name where $CONDITIONS and ' --delete-target-dir --target-dir /user/root/folder/ -m1
+
+How to create a param file (The thing which are common we can keep in one file and we can call the file all the time) --
+
+--connect
+jdbc:mysql://localhost/DB_NAME
+--username
+root
+--password
+cloudera
+
+Save the file with some name and use the below query
+[root@quickstart ~]# sqoop-import --options-file /root/pass_file.txt --table TABLE_NAME
+
+to use this the password have to keep in the root path by using sudo -i and the sqoop query not important to be used in the root path.
+
+To keep comeout from root- type exit and enter
+
+[root@quickstart cloudera]# sqoop export --connect jdbc:mysql://localhost/retail_db --username root --password cloudera --table order_items_dup --export-dir /user/root/order_items/part-m-00000
+
+to export the data through Param file-
+
+[root@quickstart cloudera]# sqoop export --options-file /root/pass_file.txt --table drp_shivam --export-dir=/user/root/order_items_dup/part-m-00000

@@ -1,0 +1,57 @@
+Sqoop incremental loads.
+
+1.	First load the data in my sql database.
+2.	Using sqoop import command copy all the data to HDFS
+Sqoop import --connect jdbc:mysql://localhost/DB_NAME --username root --password cloudera --table-name TBL_NAME --target-dir /user/cloudera/folder –m1
+
+3. 	after keeping the data in the HDFS create a external table in hive
+
+create external table table_name(cl1 DT,cl2 DT) row format delimited fields terminated by ',' location '/user/clouder/folder';
+
+4. whatever the data will be present in the HDFS file all the data will get read by that table_name by using select * from table_name;
+
+5. Now we try to update the records in my sql
+
+update table_name set column_name=value where column_name=value;
+
+6. After that we have to perform sqoop incremental loads so that it will take only updated data by using below query.
+
+sqoop import --connect jdbc:mysql://localhost/DB_NAME --username root --password cloudera -- table-name TBL_NAME --target-dir /user/cloudera/folder
+--incremental append --check-column COLUMN_NAME --last-value 'VALUE' -m1 
+
+7. After using the above query, it will copy the data after the last value data.
+
+8. Now if we use select statement in hive we will get the old data + incremental data, since we will be having duplicate data, so we have to process correct data.
+In that case we can use join to get the update data.
+
+Reference TABLE_NAME= sales_123 database name test
+
+select T1.* from 
+(select * from sales_123) T1
+join
+(select customerId, max(transactionId) upd from
+(select * from sales_123) T2
+group by customerid)s
+on T1.customerid=s.customerid and T1.transactionId=s.upd;
+
+With this query we will get the updated records and all the old reocrds. To process we can create view on it.
+
+create view VIEW_NAME as
+select T1* from
+(select * from bottle ) T1
+join
+(select col1, max(modified_date)upd from
+(select * from bottle)T2
+group by (col1, upd) s
+where T1.col1=s.col1
+and T1.modified_date=s.modified;
+
+==========================================================================
+Deletion of duplicate records-
+
+ by using self join-
+ 
+select * from phone a where rowid not in (select max(rowid) from phone b
+where a.id=b.id and a.name=b.name and a.school_name=b.school_name);
+
+select * from phone a where (rowid) not in (select max(rowid) from phone b group by id, name, school_name);

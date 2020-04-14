@@ -1,0 +1,116 @@
+Any property which needs to be changed is hive-site.xmls
+
+1. to create database- create database db_name;
+2. to use that db- use db_name;
+3. to get the db_name before session- set hive.cli.print.current.db=true;
+4. to create table name- create table table_name (CN datatypes, CN datatypes) row format delimited feild terminated by ',';
+5. insert the data into table- load data local inpath 'path from where the has to copy' into table table_name;
+6. to see the data in the table- select * from table_name;
+7. to see the data with the column name - set hive.cli.print.header=true;
+8. to drop database- drop DB DB_NAME; in this case if the DB should be empty.
+9. if the DB is not empty, still needs to be drop - DROP DB DB_NAME CASCADE;
+10. to get the column name and its data types- desc table_name;
+11. creating table using location- create table table_name (CN datatypes, CN datatypes) row format delimited feilds terminated by ',' 
+location 'hdfs path (/user/hive/warehouse/folder_name');-- the last one will always be a directory not to play with the data movement.
+12. Dynamic Partitions- 
+	. create temporary table. create table table_name (cl dt, cl2 dt2) row format delimited fields terminated by ',';
+	. load the data into temporary table. load data local inpath 'pathname of the file' into table table_name;
+	. Enable dynamic partition-- set hive.exec.dynamic.partition.mode=nonstrict;
+	. create partition table; create table table_name (cl dt, cl2 dt2) partitioned by (cl--through which partition is going to happen) row format delimited fields terminated by ',';
+	. insert data into partition table from partition table.-sel- insert into table_name partition(CL1, CL2, CL3) select * from temp_table;
+	. Drop temporary table.
+13. Bucketing=
+	. create temporary table.create table TB_NAME (cl1, dt1, cl2 dt2)  row format delimited fields terminated by ','
+	. load data into temporary table.
+	. create bucketed table. create table TB_NAME (cl1, dt1, cl2 dt2) clustered by (cl) row format delimited fields terminated by ',';
+	. enable bucketing.-- set hive.enforce.bucketing=true;
+	. insert the data into the main table.-- insert into table new_table_name select * from Temp_table;
+	. drop temp table.
+
+14. File format- TEXTFILE, RC, PARQUET, ORC
+	For ex- create table table_name( cn1, cn2) row format fields terminated by ',' stored as textfile or rc, orc, parquet;
+15. index- it is created for the faster retrival of the data. Hive doesn't provide automatic index maintenence, we need to rebuild the index 
+if we overwrite or append the data. 
+> to create index- CREATE INDEX index_name ON TABLE table_name(cn1, cn2) AS 'COMPACT' WITH DEFERRED REBUILD;
+> to see the index- show index on table_name;
+> to drop the  index- drop index on table_name;
+
+>> COMPACT- It stores the value and the address of the records in the file.
+>> BITMAP- It stores the value and the list of reoccurence of that particular value.
+
+15. Partitions- Hive Partitions is a way to organizes tables into partitions by dividing tables into different parts based on partition keys.
+
+16. Bucketing-  Buckets in hive is used in segregating of hive table-data into multiple files or directories. it is used for efficient querying.
+
+The data i.e. present in that partitions can be divided further into Buckets
+The division is performed based on Hash of particular columns that we selected in the table.
+Buckets use some form of Hashing algorithm at back end to read each record and place it into buckets.
+
+17. Hive Serde:- For the purpose of IO we have to use Hive Serde. It handles serialization & deserialization. While reading the key will always be ignored while writing the key will
+will be constant.
+
+> There are 2 types of serder- (a) Built in serder (b) custom serde in hive.
+
+18. Explode and Lateral view-
+
+As we know in hive it is having the capacity to store the data in the form of array or map in a single column. To get the data from the array or map we use explode. In general explode
+we can say as blast.
+
+
+
+considering an example-
+
+drop table chair;
+create table chair(id int, name map<string,string>,subjects array<string>);-- creating a table using map and array
+insert into table chair select 1,map("shivam","tiwari"),array("math","english","geo");--inserting the data in map and array
+insert into table chair select 2, map("saurabh","tandon"),array("physics","maths","chemistry");
+
+>> we can explode either on map on array string.-- select explode(name) from chair.
+>> since map consists of key and value pair so by assigning alais we have to use like that -- select explode(name) as (alias1,alias2)from chair;
+>> On array we can perform explode like- select explode(subjects) as sub from chair;
+>> With Explode clause we can't use any column. if we try to use any other column it will throw an error. to use any other column we have to use lateral view.
+
+>> lateral view--
+
+It is a conjunction with user defined table generating function (UDTF). It is applied when we need more than one column.
+
+select id,sub from chair lateral view explode(subjects) tmp as sub; tmp- refers to temporary table and it will be the alias of the lateral view.
+select id, tmp.key as k1, tmp.value as v1 from chair lateral view explode(name) tmp;
+
+>> Explode is a UDTF, so whatever result will come after explode will be store in the table and that will be called as tmp.
+
+>> If we to use multiple times-
+select id, tmp.key as k1, tmp.value as v1, sub from chair lateral view explode(name) tmp lateral view explode(subjects) tmp1 as sub;
+
+Collect_set and collect_list-> Both with return a collection is just that collect_set will return with no duplicate records ans collect_list will retrun the data with duplicate records.
+
+>> Static vs dynamic partioning-
+
+Static
+	> we can add manually partitions on the table.
+	> we have to use where clause for the partitions.
+	> it will be in strict mode.-> set hive.mapred.mode=strict
+	> It will take less amount to load the data.
+dynamic
+	> we can't add dynamically partitions on the table.
+	> We don't need to add where clause for the partitions.
+	> It will be nonstrict mode. -> set hive.exec.dynamic.mode=nonstrict;
+	> it will take more time to load the data into table.
+
+19. How to read json file in hive.
+
+>> There are 2 ways to read the data in hive.
+		>> using get_json_object. >> using Serde properties.
+
+>> using serde properties-- create table(----) row format serde org.apache.hive.data.jsonserde.JsonSerDe.
+
+20 How to read XML file in hive.
+
+>> using xpath or xpath_String 
+>> using serde properties.
+
+21. Transfering data to pig.
+	
+	>> before logging to the pig shell use command-> use pigHCatalog;
+	>> once done, we have to load the data-> w= LOAD 'database.table' using org.apache.hive.catalog.pig.HCatLoader();
+	>> once done, dump the data. DUMP w;
