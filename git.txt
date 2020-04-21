@@ -10,3 +10,23 @@ A great example of using forks to propose changes is for bug fixes. Rather than 
 .  Make the fix.
 . Submit a pull request to the project owner.
 If the project owner likes your work, they might pull your fix into the original repository!
+
+Merge & rebase-> Both techniques are used to bind the data into single unit which means combining the data. The main difference between both of them is depending on the history.
+
+>> Merge- 
+    .. Is a non destructive operation.
+    .. Existing branch are not changed in anyway.
+    .. create a new merge commit in the feature branch.
+>> Rebase-
+    .. Moves the entire feature branch to begin on the tip of the master branch.
+    .. Rewrites the project history.
+    .. we get much cleaner and linear project history.
+
+For ex- There are 2 branches master and feature, we have done the 1st commit in master branch called M1 and then we have added the a new file in the feature branch and commit, then that will become the 2nd commit called F1. Currently in the feature branch we have two files, 1st file from master and 2nd file from feature. Now we have added one more file in the master and then commit called M2.
+
+Now when we do the merge and see the logs, the logs will be m1->f1->m2-> automatically merge commit will take place in feature branch.
+Now when we do the rebase and see the logs, the logs will be m1->m2-> f1. It doesn't show any kind of etxra fork commit or merge commit.
+
+Squash -> Squash is technique in which you bundle up some of your last insignificant or less important commits into a single one. 
+For ex- 1>2->3->4->5->6->7->8->9->10
+If we have 10 commits and we want 5 commits to be a single one here we can squash. we can get all the 5 commits replace PICK to SQUASH save with the message. Once it completed all the 5 files will be merged into 4. So after that in all we will be having 4 commits. 1,2,3, merged with all.
